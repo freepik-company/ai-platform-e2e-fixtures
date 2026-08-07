@@ -14,3 +14,8 @@ content. Keep filenames stable because CI consumers address them directly.
 
 The files are intentionally small and deterministic. Any replacement must preserve
 the media contract and update both this table and every downstream integrity check.
+
+## License
+
+The synthetic fixtures and repository documentation are released under
+[CC0-1.0](LICENSE) so public CI transports may redistribute them unambiguously.
