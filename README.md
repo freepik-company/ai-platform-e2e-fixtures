@@ -15,6 +15,7 @@ stable because CI consumers address them directly.
 | `video.mp4` | Three-second H.264/AAC video input | `2ffd8d2791d6349984f95ec54f3c5471de11ec490c52220280f71596fe034cca` |
 | `face.jpg` | 768x768 JPEG portrait of a synthetic adult, face clearly visible (50 KB) | `06ea0290f7d554b3661e9d5d5684cc2c6ade0557121af45ec20c879a2f7d091d` |
 | `face.mp4` | Four-second 720x720 24 fps H.264 video, no audio, of a synthetic adult talking to camera (229 KB) | `7ab0054e7b23e207474cc9ae9bcecee7ebfbbdb613c8f4e44d809a8bf8efd46b` |
+| `lora-training.zip` | Zip of four 512x512 JPEG watercolor illustrations (no people), for LoRA training endpoints (91 KB) | `f8629f77a77f08253c31ba97ca6ea9f4f374a720de6427722b6880320fcef689` |
 
 The files are intentionally small and deterministic. Any replacement must preserve
 the media contract and update both this table and every downstream integrity check.
@@ -48,6 +49,28 @@ model may change underneath, so a regeneration is not guaranteed to be
 bit-identical. `SHA256SUMS` is the contract, not the recipe. Use these files only
 to exercise an endpoint's happy path, never as the subject of a test that expects
 unsafe content.
+
+## LoRA training archive
+
+`lora-training.zip` feeds LoRA training endpoints such as fal
+`flux-lora-fast-training`, which take a zip URL of at least four images
+(ai-platform-workspace#1602). It holds `style_1.jpg` to `style_4.jpg`, no
+captions, so a test passes `is_style: true` and a `trigger_word`. The images
+depict no real person or brand: they were generated on 2026-10-26 through fal
+with `fal-ai/flux/schnell`, FLUX.1 [schnell] (Apache-2.0), `image_size: square`,
+4 steps, seeds 4001 to 4004, one per subject, with the prompt
+"Flat watercolor illustration of {subject}, soft pastel palette, visible paper
+texture, simple composition, no text" and these subjects: a lighthouse on a
+cliff, a red bicycle leaning on a wall, a cup of coffee on a wooden table, a
+small sailboat on a calm lake.
+
+Post-processing, with ffmpeg and Info-ZIP (fixed mtimes, no extra attributes):
+
+```sh
+for i in 1 2 3 4; do ffmpeg -i flux_$i.jpg -q:v 5 style_$i.jpg; done
+touch -t 202610260000 style_*.jpg
+zip -X -D lora-training.zip style_1.jpg style_2.jpg style_3.jpg style_4.jpg
+```
 
 ## License
 
