@@ -2,9 +2,9 @@
 
 Public, synthetic media fixtures for Freepik AI Platform sandbox end-to-end tests.
 They contain no customer data, credentials, production content, real people, or
-output of Freepik's proprietary models. The two `face.*` files are AI-generated
-people made with open-weights models (see *Generated faces* below). Keep filenames
-stable because CI consumers address them directly.
+output of Freepik's proprietary models. The `face*` files show AI-generated people
+made with open-weights models (see *Generated faces* below). Keep filenames stable
+because CI consumers address them directly.
 
 | File | Purpose | SHA-256 |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ stable because CI consumers address them directly.
 | `video.mp4` | Three-second H.264/AAC video input | `2ffd8d2791d6349984f95ec54f3c5471de11ec490c52220280f71596fe034cca` |
 | `face.jpg` | 768x768 JPEG portrait of a synthetic adult, face clearly visible (50 KB) | `06ea0290f7d554b3661e9d5d5684cc2c6ade0557121af45ec20c879a2f7d091d` |
 | `face.mp4` | Four-second 720x720 24 fps H.264 video, no audio, of a synthetic adult talking to camera (229 KB) | `7ab0054e7b23e207474cc9ae9bcecee7ebfbbdb613c8f4e44d809a8bf8efd46b` |
+| `face-12f-480p.mp4` | The first 12 frames of `face.mp4` at 480x480, 24 fps H.264, no audio (half a second, 19 KB), for slow video endpoints such as the video upscalers | `5061c50bf8e20051dd5f6691c781fa343578029e075a2478d765cefcc8d7f42d` |
 | `lora-training.zip` | Zip of four 512x512 JPEG watercolor illustrations (no people), for LoRA training endpoints (91 KB) | `f8629f77a77f08253c31ba97ca6ea9f4f374a720de6427722b6880320fcef689` |
 
 The files are intentionally small and deterministic. Any replacement must preserve
@@ -26,6 +27,7 @@ Face-driven endpoints (for example Runway `act_two`, which fails with
 `NO_FACE_FOUND` on the test card) need a human face. These two depict **no real
 person**: both were generated on 2026-10-05 through fal with Apache-2.0
 open-weights models, whose licence places no restriction on the outputs.
+`face-12f-480p.mp4` is a cut of `face.mp4`, with the same origin and licence.
 
 | File | Model (licence) | Input | Seed |
 | --- | --- | --- | --- |
@@ -42,7 +44,14 @@ Post-processing, with ffmpeg:
 ffmpeg -i flux_a.jpg -vf scale=768:768 -q:v 3 face.jpg
 ffmpeg -i wan.mp4 -t 4 -an -vf "scale=720:720,fps=24" -c:v libx264 -profile:v high \
   -pix_fmt yuv420p -crf 26 -movflags +faststart face.mp4
+ffmpeg -i face.mp4 -frames:v 12 -an -vf scale=480:480 -c:v libx264 -profile:v high \
+  -pix_fmt yuv420p -crf 26 -movflags +faststart face-12f-480p.mp4
 ```
+
+`face-12f-480p.mp4` exists because the video upscalers are slow: on `face.mp4`
+(96 frames, 720x720) one sbx e2e case took 2 to 8 minutes. The last command
+derives it from `face.mp4`. Its exact bytes depend on the libx264 build and
+threading, so, as below, `SHA256SUMS` is the contract.
 
 The seeds and settings make the files reproducible in principle, but a hosted
 model may change underneath, so a regeneration is not guaranteed to be
