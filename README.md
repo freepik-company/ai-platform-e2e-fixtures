@@ -2,9 +2,9 @@
 
 Public, synthetic media fixtures for Freepik AI Platform sandbox end-to-end tests.
 They contain no customer data, credentials, production content, real people, or
-output of Freepik's proprietary models. The two `face.*` files are AI-generated
-people made with open-weights models (see *Generated faces* below). Keep filenames
-stable because CI consumers address them directly.
+output of Freepik's proprietary models. The `face*` files show AI-generated people
+made with open-weights models (see *Generated faces* below). Keep filenames stable
+because CI consumers address them directly.
 
 | File | Purpose | SHA-256 |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Face-driven endpoints (for example Runway `act_two`, which fails with
 `NO_FACE_FOUND` on the test card) need a human face. These two depict **no real
 person**: both were generated on 2026-10-05 through fal with Apache-2.0
 open-weights models, whose licence places no restriction on the outputs.
+`face-12f-480p.mp4` is a cut of `face.mp4`, with the same origin and licence.
 
 | File | Model (licence) | Input | Seed |
 | --- | --- | --- | --- |
@@ -48,8 +49,9 @@ ffmpeg -i face.mp4 -frames:v 12 -an -vf scale=480:480 -c:v libx264 -profile:v hi
 ```
 
 `face-12f-480p.mp4` exists because the video upscalers are slow: on `face.mp4`
-(96 frames, 720x720) one sbx e2e case took 2 to 8 minutes. The last command,
-run with ffmpeg 6.1.1, reproduces it bit for bit from `face.mp4`.
+(96 frames, 720x720) one sbx e2e case took 2 to 8 minutes. The last command
+derives it from `face.mp4`. Its exact bytes depend on the libx264 build and
+threading, so, as below, `SHA256SUMS` is the contract.
 
 The seeds and settings make the files reproducible in principle, but a hosted
 model may change underneath, so a regeneration is not guaranteed to be
