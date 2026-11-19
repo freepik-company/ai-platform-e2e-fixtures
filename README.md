@@ -1,10 +1,13 @@
 # AI Platform E2E fixtures
 
-Public, synthetic media fixtures for Freepik AI Platform sandbox end-to-end tests.
-They contain no customer data, credentials, production content, real people, or
-output of Freepik's proprietary models. The `face*` files show AI-generated people
-made with open-weights models (see *Generated faces* below). Keep filenames stable
-because CI consumers address them directly.
+Public media fixtures for Freepik AI Platform sandbox end-to-end tests. They
+contain no customer data, credentials, production content, or output of Freepik's
+proprietary models. Apart from the `celebrity-*` files, they are synthetic and
+show no real person: the `face*` files show AI-generated people made with
+open-weights models (see *Generated faces* below). The `celebrity-*` files are
+the one exception: public-domain official portraits of a public figure, kept only
+as the subject of moderation-refusal tests (see *Moderation-refusal fixtures*
+below). Keep filenames stable because CI consumers address them directly.
 
 | File | Purpose | SHA-256 |
 | --- | --- | --- |
@@ -17,6 +20,8 @@ because CI consumers address them directly.
 | `face.mp4` | Four-second 720x720 24 fps H.264 video, no audio, of a synthetic adult talking to camera (229 KB) | `7ab0054e7b23e207474cc9ae9bcecee7ebfbbdb613c8f4e44d809a8bf8efd46b` |
 | `face-12f-480p.mp4` | The first 12 frames of `face.mp4` at 480x480, 24 fps H.264, no audio (half a second, 19 KB), for slow video endpoints such as the video upscalers | `5061c50bf8e20051dd5f6691c781fa343578029e075a2478d765cefcc8d7f42d` |
 | `lora-training.zip` | Zip of four 512x512 JPEG watercolor illustrations (no people), for LoRA training endpoints (91 KB) | `f8629f77a77f08253c31ba97ca6ea9f4f374a720de6427722b6880320fcef689` |
+| `celebrity-1.jpg` | 2687x3356 JPEG public-domain official portrait of a public figure, for moderation-refusal tests only (1.3 MB) | `744dd848fbb0584229169e01c4944664957c62495fb9e8af514a088ebca43e19` |
+| `celebrity-2.jpg` | 2376x3008 JPEG public-domain official portrait of the same public figure, a different photograph, for moderation-refusal tests only (1.4 MB) | `5db4f1faf2fe7cc23a6076394763b6b2160527435620dd1256b2393fb14be762` |
 
 The files are intentionally small and deterministic. Any replacement must preserve
 the media contract and update both this table and every downstream integrity check.
@@ -58,6 +63,7 @@ model may change underneath, so a regeneration is not guaranteed to be
 bit-identical. `SHA256SUMS` is the contract, not the recipe. Use these files only
 to exercise an endpoint's happy path, never as the subject of a test that expects
 unsafe content.
+The `celebrity-*` files below are the only fixtures meant for that.
 
 ## LoRA training archive
 
@@ -80,6 +86,35 @@ for i in 1 2 3 4; do ffmpeg -i flux_$i.jpg -q:v 5 style_$i.jpg; done
 touch -t 202610260000 style_*.jpg
 zip -X -D lora-training.zip style_1.jpg style_2.jpg style_3.jpg style_4.jpg
 ```
+
+## Moderation-refusal fixtures
+
+Some e2e cases check that a provider's moderation **refuses** an input, for
+example the `err-moderation-refused-*` cases of ai-bumblebee-proxy, where Byteplus
+asset moderation answers `Celebrity` (ai-bumblebee-proxy#3386). A refusal of that
+kind needs a real public figure, so no synthetic image can stand in. The
+`celebrity-*` files are the single, deliberate exception to "no real people":
+
+- They are official portraits, works of the United States federal government and
+  therefore in the public domain (17 U.S.C. § 105), redistributed byte-for-byte
+  from Wikimedia Commons. Neither file was modified.
+- Use them **only** as the input a test expects to be refused. Never use them in a
+  happy path, never as an image to edit, animate or otherwise generate from, and
+  never add a fixture of a private person.
+
+| File | Wikimedia Commons source | Author | Date | Commons SHA-1 |
+| --- | --- | --- | --- | --- |
+| `celebrity-1.jpg` | [File:President_Barack_Obama.jpg](https://commons.wikimedia.org/wiki/File:President_Barack_Obama.jpg) | Official White House Photo by Pete Souza | 2012-12-06 | `580af39382a677c20eccfacc6e43309eea039805` |
+| `celebrity-2.jpg` | [File:Barack_Obama_Senate_portrait_crop.jpg](https://commons.wikimedia.org/wiki/File:Barack_Obama_Senate_portrait_crop.jpg) | United States Senate | 2005-10-18 | `4cb8cc243dc2295b4d815857d0d9b7dc3c96f3a9` |
+
+Whether a provider flags a given portrait is its classifier's call, not a
+property of the file: on 2026-11-18 Byteplus accepted another official portrait
+of a former president. If a refusal case starts passing the input through,
+re-probe and replace the file here rather than loosening the test.
+
+The two images are the only fixtures not dedicated to CC0 by this repository's
+authors: they are public domain on their own terms, which the CC0 dedication
+below leaves unchanged.
 
 ## License
 
