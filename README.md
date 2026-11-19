@@ -23,8 +23,11 @@ below). Keep filenames stable because CI consumers address them directly.
 | `celebrity-1.jpg` | 2687x3356 JPEG public-domain official portrait of a public figure, for moderation-refusal tests only (1.3 MB) | `744dd848fbb0584229169e01c4944664957c62495fb9e8af514a088ebca43e19` |
 | `celebrity-2.jpg` | 2376x3008 JPEG public-domain official portrait of the same public figure, a different photograph, for moderation-refusal tests only (1.4 MB) | `5db4f1faf2fe7cc23a6076394763b6b2160527435620dd1256b2393fb14be762` |
 
-The files are intentionally small and deterministic. Any replacement must preserve
-the media contract and update both this table and every downstream integrity check.
+The files are intentionally small and deterministic, except the `celebrity-*`
+portraits (about 1.3 MB each), which are kept at full size so they stay
+byte-identical to their Commons originals (see *Moderation-refusal fixtures*).
+Any replacement must preserve the media contract and update both this table and
+every downstream integrity check.
 
 ## Generated faces
 
